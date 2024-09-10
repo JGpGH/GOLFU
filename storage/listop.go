@@ -37,6 +37,7 @@ func NewIndexedList[T Indexable]() IndexedList[T] {
 	return IndexedList[T]{
 		indexed: map[string]elementContainer[T]{},
 		sorted:  list.List{},
+		lock:    sync.RWMutex{},
 	}
 }
 
