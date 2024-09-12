@@ -1,22 +1,23 @@
 package storage
 
 import (
+	"golfu/listop"
 	"sync"
 	"sync/atomic"
 )
 
-type Unit[T Indexable] struct {
+type Unit[T listop.Indexable] struct {
 	isPersisted *atomic.Bool
 	value       T
 	lock        sync.RWMutex
 }
 
-type Persistable[T Indexable] struct {
+type Persistable[T listop.Indexable] struct {
 	value       T
 	isPersisted bool
 }
 
-func ToUnpersistedUnits[T Indexable](values []T) []*Unit[T] {
+func ToUnpersistedUnits[T listop.Indexable](values []T) []*Unit[T] {
 	var result []*Unit[T]
 	for _, v := range values {
 		result = append(result, NewUnit(v, false))
@@ -24,7 +25,7 @@ func ToUnpersistedUnits[T Indexable](values []T) []*Unit[T] {
 	return result
 }
 
-func ToPersistedUnits[T Indexable](values []T) []*Unit[T] {
+func ToPersistedUnits[T listop.Indexable](values []T) []*Unit[T] {
 	var result []*Unit[T]
 	for _, v := range values {
 		result = append(result, NewUnit(v, true))
@@ -32,7 +33,7 @@ func ToPersistedUnits[T Indexable](values []T) []*Unit[T] {
 	return result
 }
 
-func ToUnits[T Indexable](values []Persistable[T]) []*Unit[T] {
+func ToUnits[T listop.Indexable](values []Persistable[T]) []*Unit[T] {
 	var result []*Unit[T]
 	for _, v := range values {
 		result = append(result, NewUnit(v.value, v.isPersisted))
@@ -40,7 +41,7 @@ func ToUnits[T Indexable](values []Persistable[T]) []*Unit[T] {
 	return result
 }
 
-func NewUnit[T Indexable](value T, persisted bool) *Unit[T] {
+func NewUnit[T listop.Indexable](value T, persisted bool) *Unit[T] {
 	isPersisted := &atomic.Bool{}
 	isPersisted.Store(persisted)
 	return &Unit[T]{
