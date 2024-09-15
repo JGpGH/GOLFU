@@ -15,5 +15,5 @@ Feel free to submit a PR or put a comment or whatever if you find a bug or wanna
       -/   "   \-
      /-|       |-\
     / /-\     /-\ \
-     / /-`---'-\ \     ascii crab 
+     / /-`---'-\ \     ascii crab
       /         \
