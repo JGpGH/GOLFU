@@ -5,4 +5,15 @@ In-memory cache system
 - retrieves all cache-miss from the cold storage
 - "eventual" persistency (async if you will) allows non-blocking set operation
 
-Don't use in production lol
+## ctx
+Don't use in production lol <br>
+Feel free to submit a PR or put a comment or whatever if you find a bug or wanna improve it somehow
+
+     /\
+    ( /   @ @    ()
+     \  __| |__  /
+      -/   "   \-
+     /-|       |-\
+    / /-\     /-\ \
+     / /-`---'-\ \     ascii crab
+      /         \
