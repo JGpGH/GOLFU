@@ -1,9 +1,10 @@
 package storage
 
 import (
-	"golfu/listop"
 	"sync"
 	"sync/atomic"
+
+	"github.com/JGpGH/GOLFU/listop"
 )
 
 type Unit[T listop.Indexable] struct {

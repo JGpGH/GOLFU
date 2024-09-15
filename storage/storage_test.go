@@ -2,10 +2,11 @@ package storage_test
 
 import (
 	"context"
-	"golfu/listop"
-	"golfu/storage"
 	"testing"
 	"time"
+
+	"github.com/JGpGH/GOLFU/listop"
+	"github.com/JGpGH/GOLFU/storage"
 )
 
 type TestColdStorage[T listop.Indexable] struct {

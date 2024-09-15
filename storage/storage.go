@@ -2,7 +2,8 @@ package storage
 
 import (
 	"context"
-	"golfu/listop"
+
+	"github.com/JGpGH/GOLFU/listop"
 )
 
 type ColdStorage[T listop.Indexable] interface {
