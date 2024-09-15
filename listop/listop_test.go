@@ -41,6 +41,14 @@ func Test_IndexedList_SetThenGet(t *testing.T) {
 	if r["4"] != test4 {
 		t.Error("Expected test4, got ", r["4"])
 	}
+	if r["4"].is_something {
+		t.Error("Expected test4 to be false, got true")
+	}
+	indexedList.Set([]*testStruct{{ID: "4", is_something: true}})
+	r = indexedList.Get([]string{"4"})
+	if r["4"].is_something == false {
+		t.Error("Expected test4 to be true, got false")
+	}
 }
 
 func Test_IndexedList_GetReadWriteCounts(t *testing.T) {

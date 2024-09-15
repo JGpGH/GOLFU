@@ -25,6 +25,22 @@ func ToUnpersistedUnits[T listop.Indexable](values []T) []*Unit[T] {
 	return result
 }
 
+func Values[T listop.Indexable](units []*Unit[T]) []T {
+	var result []T
+	for _, u := range units {
+		result = append(result, u.Read())
+	}
+	return result
+}
+
+func AsReadOnlyUnits[T listop.Indexable](units []*Unit[T]) []listop.Readonly[T] {
+	var result []listop.Readonly[T]
+	for _, u := range units {
+		result = append(result, u)
+	}
+	return result
+}
+
 func ToPersistedUnits[T listop.Indexable](values []T) []*Unit[T] {
 	var result []*Unit[T]
 	for _, v := range values {
@@ -55,6 +71,10 @@ func (u *Unit[T]) Read() T {
 	u.lock.RLock()
 	defer u.lock.RUnlock()
 	return u.value
+}
+
+func (u *Unit[T]) ReadOnly() listop.Readonly[T] {
+	return u
 }
 
 func (u *Unit[T]) Write(value T) {

@@ -6,8 +6,25 @@ import (
 )
 
 type ColdStorage[T listop.Indexable] interface {
-	Set([]listop.Readonly[T]) ([]listop.Readonly[T], error)
+	Set([]listop.Readonly[T]) error
 	Get([]string) (map[string]T, error)
+}
+
+type Indexed[T any] struct {
+	index string
+	Value T
+}
+
+func (i Indexed[T]) Index() string {
+	return i.index
+}
+
+func NewIndexed[T any](index string, value T) Indexed[T] {
+	return Indexed[T]{index: index, Value: value}
+}
+
+type Trash[T listop.Indexable] interface {
+	Trash([]T)
 }
 
 type CachedStorage[T listop.Indexable] interface {
@@ -20,23 +37,22 @@ type cachedStorage[T listop.Indexable] struct {
 	cold      ColdStorage[T]
 	maxUnits  int
 	ctx       context.Context
-	cancel    context.CancelFunc
 	toCache   chan []Persistable[T]
 	newLength chan int
 }
 
-func NewCachedStorage[T listop.Indexable](cold ColdStorage[T], maxUnits int) CachedStorage[T] {
+func NewCachedStorage[T listop.Indexable](cold ColdStorage[T], trash Trash[T], maxUnits int) (CachedStorage[T], context.CancelFunc) {
 	ctx, cancel := context.WithCancel(context.Background())
 	cache := &cachedStorage[T]{
 		units:     listop.NewIndexedList[*Unit[T]](),
 		cold:      cold,
 		maxUnits:  maxUnits,
 		ctx:       ctx,
-		cancel:    cancel,
 		toCache:   make(chan []Persistable[T], 100),
 		newLength: make(chan int, 100),
 	}
 
+	// cache storing routine for non-blocking Set
 	go func() {
 		for {
 			select {
@@ -44,26 +60,34 @@ func NewCachedStorage[T listop.Indexable](cold ColdStorage[T], maxUnits int) Cac
 				return
 			case in := <-cache.toCache:
 				l := cache.units.Len()
-				cache.units.Set(ToUnits(in))
+				units := ToUnits(in)
+				cache.units.Set(units)
 				cache.newLength <- l + len(in)
+				cache.cold.Set(AsReadOnlyUnits(units))
+				for _, u := range units {
+					u.SetPersisted()
+				}
 			}
 		}
 	}()
 
+	// routine to evict units
 	go func() {
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case u := <-cache.newLength:
-				if u > cache.maxUnits {
-					cache.evict(u - cache.maxUnits + cache.maxUnits/5) // evict 20% of the cache + everything above max
+				currentLen := max(cache.units.Len(), u)
+				if currentLen > cache.maxUnits {
+					evicted := cache.evict(currentLen - cache.maxUnits + cache.maxUnits/5) // evict 20% of the cache + everything above max
+					trash.Trash(evicted)
 				}
 			}
 		}
 	}()
 
-	return cache
+	return cache, cancel
 }
 
 func (s *cachedStorage[T]) Set(values []T) {
@@ -113,12 +137,14 @@ func (s *cachedStorage[T]) Get(indexes []string) (map[string]T, error) {
 	return result, nil
 }
 
-func (s *cachedStorage[T]) evict(amount int) {
+func (s *cachedStorage[T]) evict(amount int) []T {
 	if amount <= 0 {
-		return
+		return []T{}
 	}
 	s.units.SortByReadCount()
-	s.units.PopWhere(func(u *Unit[T]) bool {
-		return !u.IsPersisted()
+	trashed := s.units.PopWhere(func(u *Unit[T]) bool {
+		return u.IsPersisted()
 	}, amount)
+	s.units.ClearReadCounts()
+	return Values(trashed)
 }
