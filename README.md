@@ -5,3 +5,4 @@ In-memory cache system
 - retrieves all cache-miss from the cold storage
 - "eventual" persistency (async if you will) allows non-blocking set operation
 
+Don't use in production lol
