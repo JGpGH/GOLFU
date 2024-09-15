@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"testing"
 
-	"github.com/JGpGH/GOLFU/listop"
+	"github.com/JGpGH/golfu/internal/listop"
 )
 
 type testStruct struct {

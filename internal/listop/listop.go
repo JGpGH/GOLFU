@@ -4,26 +4,12 @@ import (
 	"container/list"
 	"sync"
 	"sync/atomic"
+
+	"github.com/JGpGH/golfu/storage"
 )
 
-type Readonly[T any] interface {
-	Read() T
-}
-
-func Collect[T any](src []Readonly[T]) []T {
-	var result []T
-	for _, r := range src {
-		result = append(result, r.Read())
-	}
-	return result
-}
-
-type Indexable interface {
-	Index() string
-}
-
 // readCountTracker over an Element with value of type T
-type readCountTracker[T Indexable] struct {
+type readCountTracker[T storage.Indexable] struct {
 	Element        *list.Element
 	ReadWriteCount *atomic.Uint32
 }
@@ -36,13 +22,13 @@ func (c *readCountTracker[T]) Value() T {
 	return c.Element.Value.(T)
 }
 
-type IndexedList[T Indexable] struct {
+type IndexedList[T storage.Indexable] struct {
 	indexed map[string]readCountTracker[T]
 	sorted  list.List
 	lock    sync.RWMutex
 }
 
-func NewIndexedList[T Indexable]() IndexedList[T] {
+func NewIndexedList[T storage.Indexable]() IndexedList[T] {
 	return IndexedList[T]{
 		indexed: map[string]readCountTracker[T]{},
 		sorted:  list.List{},

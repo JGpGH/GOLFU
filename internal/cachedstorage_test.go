@@ -1,21 +1,21 @@
-package storage_test
+package internal_test
 
 import (
 	"context"
 	"testing"
 	"time"
 
-	"github.com/JGpGH/GOLFU/listop"
-	"github.com/JGpGH/GOLFU/storage"
+	"github.com/JGpGH/golfu/internal"
+	"github.com/JGpGH/golfu/storage"
 )
 
-type TestColdStorage[T listop.Indexable] struct {
+type TestColdStorage[T storage.Indexable] struct {
 	setted  chan T
 	deleted chan T
 	inner   map[string]T
 }
 
-func NewTestColdStorage[T listop.Indexable]() *TestColdStorage[T] {
+func NewTestColdStorage[T storage.Indexable]() *TestColdStorage[T] {
 	return &TestColdStorage[T]{
 		setted:  make(chan T, 100),
 		deleted: make(chan T, 100),
@@ -23,7 +23,7 @@ func NewTestColdStorage[T listop.Indexable]() *TestColdStorage[T] {
 	}
 }
 
-func (tcs *TestColdStorage[T]) Set(ins []listop.Readonly[T]) error {
+func (tcs *TestColdStorage[T]) Set(ins []storage.Readonly[T]) error {
 	for _, in := range ins {
 		tcs.setted <- in.Read()
 	}
@@ -76,7 +76,7 @@ func (tcs *TestColdStorage[T]) CollectDeleted(ctx context.Context, max int) []T 
 
 func TestStorageGetThenSet(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, stop := storage.NewCachedStorage(cold, cold, 10)
+	cache, stop := internal.NewCachedStorage(cold, cold, 10)
 	defer stop()
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
@@ -97,7 +97,7 @@ func TestStorageGetThenSet(t *testing.T) {
 
 func TestStorageEvictsSortedByRead(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := storage.NewCachedStorage(cold, cold, 4)
+	cache, cancel := internal.NewCachedStorage(cold, cold, 4)
 	defer cancel()
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
@@ -134,7 +134,7 @@ func TestStorageEvictsSortedByRead(t *testing.T) {
 
 func TestStorageEvictsOldest(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := storage.NewCachedStorage(cold, cold, 4)
+	cache, cancel := internal.NewCachedStorage(cold, cold, 4)
 	defer cancel()
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
@@ -182,7 +182,7 @@ func TestStorageEvictsOldest(t *testing.T) {
 
 func TestStorageEvictsUntil20PercentUnderMax(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := storage.NewCachedStorage(cold, cold, 10)
+	cache, cancel := internal.NewCachedStorage(cold, cold, 10)
 	defer cancel()
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
