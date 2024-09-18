@@ -112,8 +112,7 @@ type cachedStorage[T storage.Indexable] struct {
 	newLength chan int
 }
 
-func NewCachedStorage[T storage.Indexable](cold storage.ColdStorage[T], trash storage.Trash[T], maxUnits int) (storage.CachedStorage[T], context.CancelFunc) {
-	ctx, cancel := context.WithCancel(context.Background())
+func NewCachedStorage[T storage.Indexable](ctx context.Context, cold storage.ColdStorage[T], trash storage.Trash[T], maxUnits int) storage.CachedStorage[T] {
 	cache := &cachedStorage[T]{
 		units:     listop.NewIndexedList[*unit[T]](),
 		cold:      cold,
@@ -123,5 +122,5 @@ func NewCachedStorage[T storage.Indexable](cold storage.ColdStorage[T], trash st
 		newLength: make(chan int, 100),
 	}
 	cache.Start(ctx, trash)
-	return cache, cancel
+	return cache
 }

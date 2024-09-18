@@ -76,8 +76,7 @@ func (tcs *TestColdStorage[T]) CollectDeleted(ctx context.Context, max int) []T 
 
 func TestStorageGetThenSet(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, stop := internal.NewCachedStorage(cold, cold, 10)
-	defer stop()
+	cache := internal.NewCachedStorage(context.Background(), cold, cold, 10)
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
 		storage.NewIndexed("2", 2),
@@ -97,8 +96,7 @@ func TestStorageGetThenSet(t *testing.T) {
 
 func TestStorageEvictsSortedByRead(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := internal.NewCachedStorage(cold, cold, 4)
-	defer cancel()
+	cache := internal.NewCachedStorage(context.Background(), cold, cold, 4)
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
 		storage.NewIndexed("2", 2),
@@ -134,8 +132,7 @@ func TestStorageEvictsSortedByRead(t *testing.T) {
 
 func TestStorageEvictsOldest(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := internal.NewCachedStorage(cold, cold, 4)
-	defer cancel()
+	cache := internal.NewCachedStorage(context.Background(), cold, cold, 4)
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
 		storage.NewIndexed("2", 2),
@@ -182,8 +179,7 @@ func TestStorageEvictsOldest(t *testing.T) {
 
 func TestStorageEvictsUntil20PercentUnderMax(t *testing.T) {
 	cold := NewTestColdStorage[storage.Indexed[int]]()
-	cache, cancel := internal.NewCachedStorage(cold, cold, 10)
-	defer cancel()
+	cache := internal.NewCachedStorage(context.Background(), cold, cold, 10)
 	cache.Set([]storage.Indexed[int]{
 		storage.NewIndexed("1", 1),
 		storage.NewIndexed("2", 2),
